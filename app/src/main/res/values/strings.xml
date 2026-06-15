@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GoDark</string>
+    <string name="status_dark">DARK</string>
+    <string name="status_exposed">EXPOSED</string>
+    <string name="notif_channel_vpn">Network blackout</string>
+    <string name="notif_channel_sentinel">Sentinel alerts</string>
+</resources>
