@@ -28,6 +28,9 @@ object GoDarkState {
     /** Blocklist status line shown in the UI ("142,381 domains loaded" etc). */
     val blocklistStatus = MutableStateFlow("Blocklist not loaded")
 
+    /** Latest privacy-dashboard snapshot (set by Stats). Nullable until loaded. */
+    val statsSnapshot = MutableStateFlow<com.godark.app.dns.Stats.Snapshot?>(null)
+
     fun logSentinel(event: String) {
         sentinelLog.value = (listOf(event) + sentinelLog.value).take(50)
     }

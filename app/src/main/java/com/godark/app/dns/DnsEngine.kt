@@ -56,10 +56,12 @@ object DnsEngine {
         if (Blocklist.isBlocked(domain)) {
             GoDarkState.dnsBlocked.value++
             GoDarkState.logDns("${timeFmt.format(Date())}  ✕ $domain")
+            Stats.record(context, domain, blocked = true)
             return nxdomain(query)
         }
 
         GoDarkState.logDns("${timeFmt.format(Date())}  ✓ $domain")
+        Stats.record(context, domain, blocked = false)
 
         val up = upstream(context)
         return try {

@@ -71,9 +71,12 @@ fun GoDarkScreen(fromTile: Boolean) {
     val blocked by GoDarkState.dnsBlocked.collectAsState()
     val total by GoDarkState.dnsTotal.collectAsState()
     val blStatus by GoDarkState.blocklistStatus.collectAsState()
+    val stats by GoDarkState.statsSnapshot.collectAsState()
 
     var pendingMode by remember { mutableStateOf<Mode?>(null) }
     var showAbout by remember { mutableStateOf(false) }
+    var showDashboard by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
     var upstream by remember { mutableStateOf(DnsEngine.upstream(context)) }
     var logTab by remember { mutableStateOf(0) } // 0 = DNS, 1 = Sentinel
     var showAlwaysOnHelp by remember { mutableStateOf(false) }
@@ -97,6 +100,7 @@ fun GoDarkScreen(fromTile: Boolean) {
         ActivityResultContracts.RequestPermission()
     ) { }
     LaunchedEffect(Unit) {
+        com.godark.app.dns.Stats.ensureLoaded(context)
         reconcileMode(context)
         if (Build.VERSION.SDK_INT >= 33) {
             notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -175,20 +179,36 @@ fun GoDarkScreen(fromTile: Boolean) {
             AboutScreen(onBack = { showAbout = false })
             return@MaterialTheme
         }
+        if (showDashboard) {
+            DashboardScreen(
+                snapshot = stats,
+                onClear = { com.godark.app.dns.Stats.clear(context) },
+                onBack = { showDashboard = false }
+            )
+            return@MaterialTheme
+        }
         Column(
-            Modifier.fillMaxSize().background(Color.Black).padding(20.dp),
+            Modifier.fillMaxSize().background(Color.Black)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("GODARK", color = Color.White, fontSize = 24.sp,
-                    fontWeight = FontWeight.Black, letterSpacing = 6.sp)
-                Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.height(8.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("☰", color = Color.White, fontSize = 22.sp,
+                    modifier = Modifier.clickable { showMenu = true })
+                Spacer(Modifier.weight(1f))
+                Text("GODARK", color = Color.White, fontSize = 22.sp,
+                    fontWeight = FontWeight.Black, letterSpacing = 5.sp)
+                Spacer(Modifier.weight(1f))
                 Text("ⓘ", color = Dim, fontSize = 18.sp,
                     modifier = Modifier.clickable { showAbout = true })
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
             // ===== STATUS BANNER — always says exactly what is happening =====
             Column(
@@ -217,7 +237,7 @@ fun GoDarkScreen(fromTile: Boolean) {
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
 
             // ===== CONTROL 1: GUARD — the daily-driver switch =====
             Column(
@@ -242,22 +262,9 @@ fun GoDarkScreen(fromTile: Boolean) {
                         if (sentinel) SentinelService.stop(context) else SentinelService.start(context)
                     }
                 )
-                HorizontalDivider(color = Color(0xFF262626))
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 10.dp)
-                        .clickable { upstream = DnsEngine.cycleUpstream(context) },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text("Encrypted DNS via ${upstream.label}", color = Color.White,
-                            fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        Text(blStatus, color = Dim, fontSize = 12.sp)
-                    }
-                    Text("change", color = Neon, fontSize = 12.sp)
-                }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
 
             // ===== HARDEN — make GoDark unkillable =====
             if (!batteryExempt) {
@@ -291,58 +298,108 @@ fun GoDarkScreen(fromTile: Boolean) {
                         }
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
             }
 
-            // ===== CONTROL 2: GO DARK — the panic button =====
-            Box(
-                Modifier.size(150.dp)
-                    .border(5.dp, ringColor, CircleShape)
-                    .background(if (mode == Mode.DARK) Color(0xFF1A1A1A) else Color(0xFF0A0A0A), CircleShape)
-                    .clickable { toggleDark() },
-                contentAlignment = Alignment.Center
+            // ===== CONTROL 2: GO DARK — compact panic bar =====
+            Row(
+                Modifier.fillMaxWidth()
+                    .border(2.dp, if (mode == Mode.DARK) Moon else Danger, RoundedCornerShape(16.dp))
+                    .background(if (mode == Mode.DARK) Color(0xFF1A1A1A) else Color(0xFF0A0A0A), RoundedCornerShape(16.dp))
+                    .clickable { toggleDark() }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    if (mode == Mode.DARK) "EXIT\nDARK" else "GO\nDARK",
-                    color = if (mode == Mode.DARK) Moon else Danger,
-                    fontSize = 22.sp, fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center, letterSpacing = 3.sp
-                )
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (mode == Mode.DARK) "EXIT DARK" else "GO DARK",
+                        color = if (mode == Mode.DARK) Moon else Danger,
+                        fontSize = 18.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp
+                    )
+                    Text(
+                        if (mode == Mode.DARK) "Tap to restore connections"
+                        else "Emergency: kill ALL connections instantly",
+                        color = Dim, fontSize = 11.sp
+                    )
+                }
+                Text(if (mode == Mode.DARK) "◐" else "⏻",
+                    color = if (mode == Mode.DARK) Moon else Danger, fontSize = 22.sp)
             }
-            Text(
-                if (mode == Mode.DARK) "tap to restore connections"
-                else "emergency: kill ALL connections instantly",
-                color = Dim, fontSize = 11.sp,
-                modifier = Modifier.padding(top = 6.dp)
-            )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
 
-            // ===== LOGS =====
-            Row(Modifier.align(Alignment.Start)) {
-                LogTab("DNS", logTab == 0) { logTab = 0 }
+            val s = stats
+
+            // ===== LIVE FEED (prominent real-time area) =====
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                LogTab("LIVE", logTab == 0) { logTab = 0 }
                 Spacer(Modifier.width(16.dp))
                 LogTab("SENTINEL", logTab == 1) { logTab = 1 }
+                Spacer(Modifier.weight(1f))
+                if (logTab == 0 && s != null && s.allTotal > 0) {
+                    Text("${s.todayBlocked} blocked today", color = Neon, fontSize = 12.sp)
+                }
             }
             Spacer(Modifier.height(8.dp))
             val entries = if (logTab == 0) dnsLog else sentinelLog
             LazyColumn(
                 Modifier.fillMaxWidth().weight(1f)
                     .background(Panel, RoundedCornerShape(16.dp))
-                    .padding(12.dp)
+                    .padding(14.dp)
             ) {
                 if (entries.isEmpty()) {
-                    item { Text("nothing yet", color = Dim, fontSize = 12.sp) }
+                    item {
+                        Text(
+                            if (logTab == 0)
+                                "Turn Guard on and browse — blocked (✕) and allowed (✓) lookups appear here live."
+                            else
+                                "Sentinel events will appear here.",
+                            color = Dim, fontSize = 13.sp, lineHeight = 19.sp
+                        )
+                    }
                 }
                 items(entries) { entry ->
                     Text(
                         entry,
                         color = if ("⚠" in entry || "✕" in entry) Danger else Dim,
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
                         modifier = Modifier.padding(vertical = 3.dp)
                     )
                 }
             }
+        }
+
+        if (showMenu) {
+            AlertDialog(
+                onDismissRequest = { showMenu = false },
+                confirmButton = {
+                    TextButton(onClick = { showMenu = false }) { Text("Close", color = Neon) }
+                },
+                containerColor = Panel,
+                title = { Text("Menu", color = Color.White) },
+                text = {
+                    Column {
+                        Text(
+                            "📊  Privacy dashboard",
+                            color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.fillMaxWidth()
+                                .clickable { showMenu = false; showDashboard = true }
+                                .padding(vertical = 12.dp)
+                        )
+                        HorizontalDivider(color = Color(0xFF262626))
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .clickable { upstream = DnsEngine.cycleUpstream(context) }
+                                .padding(vertical = 12.dp)
+                        ) {
+                            Text("Encrypted DNS via ${upstream.label}", color = Color.White,
+                                fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                            Text("$blStatus  ·  tap to change", color = Dim, fontSize = 12.sp)
+                        }
+                    }
+                }
+            )
         }
 
         if (showAlwaysOnHelp) {
@@ -378,6 +435,107 @@ fun GoDarkScreen(fromTile: Boolean) {
 
     }
 }
+
+@Composable
+private fun DashboardScreen(
+    snapshot: com.godark.app.dns.Stats.Snapshot?,
+    onClear: () -> Unit,
+    onBack: () -> Unit
+) {
+    androidx.compose.foundation.lazy.LazyColumn(
+        Modifier.fillMaxSize().background(Color.Black)
+            .systemBarsPadding()
+            .padding(horizontal = 24.dp)
+    ) {
+        item {
+            Spacer(Modifier.height(12.dp))
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(Panel, RoundedCornerShape(12.dp))
+                    .clickable { onBack() }
+                    .padding(vertical = 14.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("\u2190", color = Neon, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(10.dp))
+                Text("Back", color = Neon, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Spacer(Modifier.height(20.dp))
+            Text("PRIVACY DASHBOARD", color = Color.White, fontSize = 22.sp,
+                fontWeight = FontWeight.Black, letterSpacing = 4.sp)
+            Spacer(Modifier.height(24.dp))
+        }
+
+        if (snapshot == null || snapshot.allTotal == 0L) {
+            item {
+                Text(
+                    "No data yet. Turn Guard on and browse for a bit \u2014 " +
+                            "blocked trackers will show up here.",
+                    color = Dim, fontSize = 15.sp, lineHeight = 22.sp
+                )
+            }
+            return@LazyColumn
+        }
+
+        val pct = if (snapshot.allTotal > 0)
+            (snapshot.allBlocked * 100 / snapshot.allTotal) else 0
+
+        item {
+            Text("$pct%", color = Neon, fontSize = 64.sp, fontWeight = FontWeight.Black)
+            Text("of all DNS lookups blocked", color = Dim, fontSize = 15.sp)
+            Spacer(Modifier.height(28.dp))
+            BigStatRow("Today", snapshot.todayBlocked, snapshot.todayTotal)
+            BigStatRow("This week", snapshot.weekBlocked, snapshot.weekTotal)
+            BigStatRow("All time", snapshot.allBlocked, snapshot.allTotal)
+            Spacer(Modifier.height(28.dp))
+            if (snapshot.topDomains.isNotEmpty()) {
+                Text("TOP BLOCKED TRACKERS", color = Dim, fontSize = 12.sp, letterSpacing = 3.sp,
+                    fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(12.dp))
+            }
+        }
+
+        items(snapshot.topDomains) { (domain, count) ->
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(Panel, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(domain, color = Color.White, fontSize = 14.sp,
+                    modifier = Modifier.weight(1f))
+                Text("$count", color = Danger, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(6.dp))
+        }
+
+        item {
+            Spacer(Modifier.height(28.dp))
+            Text(
+                "Clear history",
+                color = Danger, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable { onClear() }
+            )
+            Spacer(Modifier.height(6.dp))
+            Text("Stored only on this device. Nothing is ever uploaded.",
+                color = Dim, fontSize = 12.sp)
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun BigStatRow(label: String, blocked: Long, total: Long) {
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, color = Dim, fontSize = 16.sp, modifier = Modifier.weight(1f))
+        Text("$blocked", color = Neon, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(" blocked / $total", color = Dim, fontSize = 16.sp)
+    }
+}
+
 
 @Composable
 private fun LogTab(label: String, active: Boolean, onClick: () -> Unit) {

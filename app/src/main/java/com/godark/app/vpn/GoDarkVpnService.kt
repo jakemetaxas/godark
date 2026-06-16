@@ -174,6 +174,7 @@ class GoDarkVpnService : VpnService() {
 
     private fun shutdown() {
         running = false
+        try { com.godark.app.dns.Stats.flush(this) } catch (_: Exception) {}
         try { tun?.close() } catch (_: Exception) {}
         tun = null
         GoDarkState.mode.value = Mode.EXPOSED
