@@ -1,0 +1,1 @@
+Block trackers, encrypt DNS, and watch your camera and mic. All on-device.

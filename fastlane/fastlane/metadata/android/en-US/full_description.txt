@@ -1,0 +1,23 @@
+GoDark is a free, open-source privacy app for Android, for people who care about their privacy but aren't security engineers.
+
+It blocks ad and tracker domains before they load, encrypts your DNS so your provider can't see what you look up, shows you in real time what's being blocked, and warns you whenever an app uses your camera or microphone. Everything runs on your device. No accounts, no analytics, no servers collecting your data. No root required.
+
+<b>What it does</b>
+
+Guard is your everyday protection. Every DNS lookup your phone makes is filtered against a tracker, ad, and malware blocklist; matching domains fail to load. Clean lookups are forwarded over encrypted DNS (DNS-over-HTTPS) to a resolver you choose: Quad9, AdGuard, or Cloudflare. Your phone stays fully usable; only the tracking dies.
+
+Go Dark is a panic button. One tap drops all network traffic on the phone. One more tap restores it.
+
+Sentinel is a camera and microphone watchdog. It tells you the instant any app opens the camera or mic, and raises a high-priority alert if it happens while the screen is off.
+
+The privacy dashboard is a local-only record of what GoDark has blocked: totals for today, this week, and all time, plus your top blocked trackers. Clear it any time; it never leaves the phone.
+
+<b>What it does not do</b>
+
+GoDark protects you from commercial surveillance: ad networks, trackers, analytics, and apps phoning home. It does not protect against state-level adversaries, malware already on your device, or operating-system compromise. A privacy tool that promises total protection is not being honest. GoDark does one category of things well and tells you where its limits are.
+
+<b>Privacy</b>
+
+Everything stays local. No analytics, no accounts, no servers. Your logs and stats never leave the device. The app's only outbound network activity is fetching the public blocklist once and forwarding your chosen DNS queries, encrypted. Open source under GPL-3.0: don't take anyone's word for it, build it yourself and verify.
+
+Note: some manufacturers (notably Vivo and Xiaomi) kill background apps aggressively, which can stop protection when you swipe the app away from recents. GoDark detects this and restores protection when you reopen it, and never shows "protected" when it isn't.

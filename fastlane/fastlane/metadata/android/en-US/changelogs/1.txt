@@ -1,0 +1,7 @@
+First public release of GoDark.
+
+- Guard: DNS-level ad and tracker blocking with encrypted DNS (DoH)
+- Go Dark: full network kill switch
+- Sentinel: camera and microphone use alerts
+- Privacy dashboard: local-only blocking stats with live feed
+- Everything on-device. No accounts, no analytics, no servers.
