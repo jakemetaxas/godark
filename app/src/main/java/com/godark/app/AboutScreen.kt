@@ -22,11 +22,8 @@ private val Neon = Color(0xFF00E676)
 private val Dim = Color(0xFF9E9E9E)
 private val Panel = Color(0xFF161616)
 
-// TODO before launch: replace these placeholders with the real URLs once the
-// GitHub repo and donation pages exist.
-private const val URL_GITHUB = "https://github.com/REPLACE_ME/godark"
-private const val URL_SPONSORS = "https://github.com/sponsors/REPLACE_ME"
-private const val URL_LIBERAPAY = "https://liberapay.com/REPLACE_ME"
+private const val URL_GITHUB = "https://github.com/jakemetaxas/godark"
+private const val URL_LIBERAPAY = "https://liberapay.com/jakemetaxas"
 private const val EMAIL = "jakemetaxas@proton.me"
 
 @Composable
@@ -107,8 +104,6 @@ fun AboutScreen(onBack: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         LinkButton("♥  Donate via Liberapay") { open(URL_LIBERAPAY) }
-        Spacer(Modifier.height(8.dp))
-        LinkButton("♥  GitHub Sponsors") { open(URL_SPONSORS) }
 
         Spacer(Modifier.height(24.dp))
         Section("Code & contact")
