@@ -204,8 +204,8 @@ fun GoDarkScreen(fromTile: Boolean) {
                 Text("GODARK", color = Color.White, fontSize = 22.sp,
                     fontWeight = FontWeight.Black, letterSpacing = 5.sp)
                 Spacer(Modifier.weight(1f))
-                Text("ⓘ", color = Dim, fontSize = 18.sp,
-                    modifier = Modifier.clickable { showAbout = true })
+                // balance the row so the title stays centered (invisible spacer matching ☰)
+                Text("☰", color = Color.Transparent, fontSize = 22.sp)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -337,8 +337,14 @@ fun GoDarkScreen(fromTile: Boolean) {
                 LogTab("SENTINEL", logTab == 1) { logTab = 1 }
                 Spacer(Modifier.weight(1f))
                 if (logTab == 0 && s != null && s.allTotal > 0) {
-                    Text("${s.todayBlocked} blocked today", color = Neon, fontSize = 12.sp)
+                    Text("${s.todayBlocked} today", color = Dim, fontSize = 12.sp)
+                    Spacer(Modifier.width(12.dp))
                 }
+                Text(
+                    "full history ›",
+                    color = Neon, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { showDashboard = true }
+                )
             }
             Spacer(Modifier.height(8.dp))
             val entries = if (logTab == 0) dnsLog else sentinelLog
@@ -397,6 +403,14 @@ fun GoDarkScreen(fromTile: Boolean) {
                                 fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                             Text("$blStatus  ·  tap to change", color = Dim, fontSize = 12.sp)
                         }
+                        HorizontalDivider(color = Color(0xFF262626))
+                        Text(
+                            "About GoDark",
+                            color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.fillMaxWidth()
+                                .clickable { showMenu = false; showAbout = true }
+                                .padding(vertical = 12.dp)
+                        )
                     }
                 }
             )

@@ -47,11 +47,22 @@ fun AboutScreen(onBack: () -> Unit) {
 
     Column(
         Modifier.fillMaxSize().background(Color.Black)
+            .systemBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp)
+            .padding(horizontal = 24.dp)
     ) {
-        Text("← Back", color = Neon, fontSize = 14.sp,
-            modifier = Modifier.clickable { onBack() })
+        Spacer(Modifier.height(12.dp))
+        Row(
+            Modifier.fillMaxWidth()
+                .background(Panel, RoundedCornerShape(12.dp))
+                .clickable { onBack() }
+                .padding(vertical = 14.dp, horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("←", color = Neon, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(10.dp))
+            Text("Back", color = Neon, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
 
         Spacer(Modifier.height(20.dp))
         Text("GODARK", color = Color.White, fontSize = 28.sp,
