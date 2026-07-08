@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.godark.app"
+        applicationId = "com.jakemetaxas.godark"
         minSdk = 26
         targetSdk = 35
         versionCode = 3
